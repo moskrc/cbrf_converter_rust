@@ -1,9 +1,9 @@
-use reqwest::blocking::Client;
-use serde::Deserialize;
 use quick_xml::de::Deserializer;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
 use quick_xml::writer::Writer;
+use reqwest::blocking::Client;
+use serde::Deserialize;
 use std::io::BufRead;
 
 #[derive(Deserialize, Debug)]
@@ -19,9 +19,11 @@ struct Currency {
 }
 
 fn process_currency(currency: &Currency) {
-    println!("{}: {:>8} - {} ({})", currency.char_code, currency.value, currency.name, currency.nominal);
+    println!(
+        "{}: {:>8} - {} ({})",
+        currency.char_code, currency.value, currency.name, currency.nominal
+    );
 }
-
 
 fn get_content(url: String) -> String {
     // get data from url
@@ -65,9 +67,6 @@ fn read_to_end_into_buffer<R: BufRead>(
     }
 }
 
-
-
-
 fn main() {
     let url: String = "https://www.cbr.ru/scripts/XML_daily.asp".to_string();
     let content: String = get_content(url);
@@ -77,7 +76,6 @@ fn main() {
 
     let mut junk_buf: Vec<u8> = Vec::new();
     let mut count = 0;
-
 
     loop {
         match reader.read_event_into(&mut buf) {

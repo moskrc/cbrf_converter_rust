@@ -31,9 +31,9 @@ fn get_content(url: String) -> String {
     let result: Result<reqwest::blocking::Response, reqwest::Error> = client.get(url).send();
 
     match result {
-        Ok(result) => return result.text().expect("lazha"),
+        Ok(result) => result.text().expect("Can't get text response"),
         Err(error) => panic!("Problem opening URL: {:?}", error),
-    };
+    }
 }
 
 fn read_to_end_into_buffer<R: BufRead>(
@@ -90,7 +90,7 @@ fn main() {
                     let currency = Currency::deserialize(&mut deserializer).unwrap();
                     process_currency(&currency);
                     count += 1;
-                    if count % 1_000_000 == 0 {
+                    if count % 10 == 0 {
                         println!("checked {} records", count);
                     }
                 }

@@ -49,15 +49,15 @@ struct Valute {
 
 impl fmt::Display for ValCurs {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:=^79}\n", " REPORT ")?;
+        writeln!(f, "{:=^79}", " REPORT ")?;
         write!(f, "Date: {}\nName: {}\n", self.date, self.name)?;
-        write!(f, "{:-^79}\n", "")?;
-        write!(
+        writeln!(f, "{:-^79}", "")?;
+        writeln!(
             f,
-            "{:<8} {:<8} {:<6} {:<8} {:<10} {:<12} {:<10}\n",
+            "{:<8} {:<8} {:<6} {:<8} {:<10} {:<12} {:<10}",
             "id", "num", "char", "nominal", "value", "vunit_rate", "name"
         )?;
-        write!(f, "{:-^79}\n", "")?;
+        writeln!(f, "{:-^79}", "")?;
         for v in &self.valutes {
             write!(f, "{}", v)?;
         }
@@ -67,9 +67,9 @@ impl fmt::Display for ValCurs {
 
 impl fmt::Display for Valute {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
+        writeln!(
             f,
-            "{:<8} {:<8} {:<6} {:<8} {:<10} {:<12} {:<10}\n",
+            "{:<8} {:<8} {:<6} {:<8} {:<10} {:<12} {:<10}",
             self.id,
             self.num_code,
             self.char_code,
@@ -109,7 +109,7 @@ fn decode_windows1251(bytes: &Bytes) -> String {
     decoded.into_owned()
 }
 
-fn main() -> () {
+fn main() {
     let cli = Cli::parse();
 
     let content = get_data(CBRF_DAILY_XML_ENDPOINT).expect("Cant read from URL");

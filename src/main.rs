@@ -1,66 +1,85 @@
-use reqwest::blocking::{get, Response};
-use quick_xml::de::from_str;
-use serde::Deserialize;
+use bytes::Bytes;
+use clap::Parser;
 use encoding_rs::WINDOWS_1251;
+use quick_xml::de::from_str;
+use reqwest::blocking::{get, Response};
+use serde::{Deserialize, Serialize};
 use std::cmp::Ord;
+use std::fmt;
+
+const CBRF_DAILY_XML_ENDPOINT: &str = "https://www.cbr.ru/scripts/XML_daily.asp";
+
+/// Simple program to greet a person
+#[derive(Parser, Debug)]
+#[command(version)]
+struct Cli {
+    #[arg(short, long, default_value_t = false)]
+    debug: bool,
+}
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct ValCurs {
-    #[serde(rename = "@Date")]
+    #[serde(rename(deserialize = "@Date"))]
     date: String,
-    #[serde(rename = "@name")]
+    #[serde(rename(deserialize = "@name"))]
     name: String,
-    #[serde(rename = "Valute")]
+    #[serde(rename(deserialize = "Valute"))]
     valutes: Vec<Valute>,
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize, Eq)]
+#[derive(Debug, Deserialize, Eq, Serialize)]
 struct Valute {
-    #[serde(rename = "@ID")]
+    #[serde(rename(deserialize = "@ID"))]
     id: String,
-    #[serde(rename = "NumCode")]
+    #[serde(rename(deserialize = "NumCode"))]
     num_code: String,
-    #[serde(rename = "CharCode")]
+    #[serde(rename(deserialize = "CharCode"))]
     char_code: String,
-    #[serde(rename = "Nominal")]
+    #[serde(rename(deserialize = "Nominal"))]
     nominal: u32,
-    #[serde(rename = "Name")]
+    #[serde(rename(deserialize = "Name"))]
     name: String,
-    #[serde(rename = "Value")]
+    #[serde(rename(deserialize = "Value"))]
     value: String,
-    #[serde(rename = "VunitRate")]
+    #[serde(rename(deserialize = "VunitRate"))]
     vunit_rate: String,
 }
 
-impl ValCurs {
-    fn report(&self) {
-        println!("{:=^79}", " REPORT ");
-        println!("Date: {}", self.date);
-        println!("Name: {}", self.name);
-        println!("{:=^79}", "");
-        for i in 0..self.valutes.len() {
-            self.valutes[i].report();
-        }    
+impl fmt::Display for ValCurs {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:=^79}\n", " REPORT ")?;
+        write!(f, "Date: {}\nName: {}\n", self.date, self.name)?;
+        write!(f, "{:-^79}\n", "")?;
+        write!(
+            f,
+            "{:<8} {:<8} {:<6} {:<8} {:<10} {:<12} {:<10}\n",
+            "id", "num", "char", "nominal", "value", "vunit_rate", "name"
+        )?;
+        write!(f, "{:-^79}\n", "")?;
+        for v in &self.valutes {
+            write!(f, "{}", v)?;
+        }
+        Ok(())
     }
 }
 
-impl Valute {
-    fn report(&self) {
-        println!("- {}", self.name);
-        
-        println!("Id: {}", self.id);
-        println!("NumCode: {}", self.num_code);
-        println!("CharCode: {}", self.char_code);
-        println!("Nominal: {}", self.nominal);
-        println!("Value: {}", self.value);
-        println!("UnitRate: {}", self.vunit_rate);
-        
-
+impl fmt::Display for Valute {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{:<8} {:<8} {:<6} {:<8} {:<10} {:<12} {:<10}\n",
+            self.id,
+            self.num_code,
+            self.char_code,
+            self.nominal,
+            self.value,
+            self.vunit_rate,
+            self.name
+        )
     }
 }
-    
 
 impl Ord for Valute {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
@@ -80,20 +99,29 @@ impl PartialEq for Valute {
     }
 }
 
-fn main() {
-    let url: &str = "https://www.cbr.ru/scripts/XML_daily.asp"; // Replace with the actual URL
+fn get_data(url: &str) -> Result<Bytes, reqwest::Error> {
     let response: Response = get(url).expect("Failed to fetch XML from the internet");
-    let bytes= response.bytes().unwrap();
-    let xml_string: String = decode_windows1251(&bytes);
-    println!("{:?}", xml_string);
-
-    let mut valcurs: ValCurs = from_str(&xml_string).expect("Failed to parse XML");
-    valcurs.valutes.sort();
-    valcurs.report()
+    response.bytes()
 }
 
-fn decode_windows1251(bytes: &[u8]) -> String {
+fn decode_windows1251(bytes: &Bytes) -> String {
     let (decoded, _, _) = WINDOWS_1251.decode(bytes);
     decoded.into_owned()
 }
 
+fn main() -> () {
+    let cli = Cli::parse();
+
+    let content = get_data(CBRF_DAILY_XML_ENDPOINT).expect("Cant read from URL");
+    let decoded_content: String = decode_windows1251(&content);
+    let mut valcurs: ValCurs = from_str(&decoded_content).expect("Failed to parse XML");
+    valcurs.valutes.sort();
+
+    let res_json: String = serde_json::to_string(&valcurs).expect("Cant serialize to JSON");
+
+    if cli.debug {
+        println!("{}", valcurs);
+    } else {
+        println!("{}", res_json);
+    }
+}

@@ -9,7 +9,7 @@ use std::fmt;
 
 const CBRF_DAILY_XML_ENDPOINT: &str = "https://www.cbr.ru/scripts/XML_daily.asp";
 
-/// Simple program to greet a person
+/// Convert currency rates from XML to JSON format
 #[derive(Parser, Debug)]
 #[command(version)]
 struct Cli {

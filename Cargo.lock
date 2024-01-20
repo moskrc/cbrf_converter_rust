@@ -88,11 +88,13 @@ name = "converter"
 version = "0.1.0"
 dependencies = [
  "encoding",
+ "encoding_rs",
  "quick-xml",
  "reqwest",
  "serde",
  "serde-xml-rs",
  "tokio",
+ "xml",
  "xml-rs",
 ]
 
@@ -1296,6 +1298,15 @@ checksum = "524e57b2c537c0f9b1e69f1965311ec12182b4122e45035b1508cd24d2adadb1"
 dependencies = [
  "cfg-if",
  "windows-sys 0.48.0",
+]
+
+[[package]]
+name = "xml"
+version = "0.8.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5cb5b0add8d5aaa69357818de5f3b60104a62ef345dca81d0947e2148347a7f7"
+dependencies = [
+ "xml-rs",
 ]
 
 [[package]]

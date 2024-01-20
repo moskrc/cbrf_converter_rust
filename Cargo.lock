@@ -93,6 +93,7 @@ dependencies = [
  "serde",
  "serde-xml-rs",
  "tokio",
+ "xml-rs",
 ]
 
 [[package]]

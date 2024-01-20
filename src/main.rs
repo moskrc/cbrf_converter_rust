@@ -25,15 +25,10 @@ fn process_currency(currency: &Currency) {
     );
 }
 
-fn get_content(url: String) -> String {
-    // get data from url
+fn get_content(url: String) -> Result<String, reqwest::Error> {
     let client: Client = Client::new();
-    let result: Result<reqwest::blocking::Response, reqwest::Error> = client.get(url).send();
-
-    match result {
-        Ok(result) => result.text().expect("Can't get text response"),
-        Err(error) => panic!("Problem opening URL: {:?}", error),
-    }
+    let result: reqwest::blocking::Response = client.get(url).send()?;
+    Ok(result.text()?)
 }
 
 fn read_to_end_into_buffer<R: BufRead>(
@@ -41,14 +36,14 @@ fn read_to_end_into_buffer<R: BufRead>(
     start_tag: &BytesStart,
     junk_buf: &mut Vec<u8>,
 ) -> Result<Vec<u8>, quick_xml::Error> {
-    let mut depth = 0;
+    let mut depth: i32 = 0;
     let mut output_buf: Vec<u8> = Vec::new();
-    let mut w = Writer::new(&mut output_buf);
-    let tag_name = start_tag.name();
+    let mut w: Writer<&mut Vec<u8>> = Writer::new(&mut output_buf);
+    let tag_name: quick_xml::name::QName<'_> = start_tag.name();
     w.write_event(Event::Start(start_tag.clone()))?;
     loop {
         junk_buf.clear();
-        let event = reader.read_event_into(junk_buf)?;
+        let event: Event<'_> = reader.read_event_into(junk_buf)?;
         w.write_event(&event)?;
 
         match event {
@@ -69,13 +64,12 @@ fn read_to_end_into_buffer<R: BufRead>(
 
 fn main() {
     let url: String = "https://www.cbr.ru/scripts/XML_daily.asp".to_string();
-    let content: String = get_content(url);
+    let content: String = get_content(url).unwrap();
 
-    let mut reader = Reader::from_str(&content);
-    let mut buf = Vec::new();
+    let mut reader: Reader<&[u8]> = Reader::from_str(&content);
+    let mut buf: Vec<u8> = Vec::new();
 
     let mut junk_buf: Vec<u8> = Vec::new();
-    let mut count = 0;
 
     loop {
         match reader.read_event_into(&mut buf) {
@@ -83,16 +77,12 @@ fn main() {
             Ok(Event::Eof) => break,
             Ok(Event::Start(e)) => match e.name().as_ref() {
                 b"Valute" => {
-                    let release_bytes =
+                    let release_bytes: Vec<u8> =
                         read_to_end_into_buffer(&mut reader, &e, &mut junk_buf).unwrap();
-                    let str = std::str::from_utf8(&release_bytes).unwrap();
-                    let mut deserializer = Deserializer::from_str(str);
-                    let currency = Currency::deserialize(&mut deserializer).unwrap();
+                    let str: &str = std::str::from_utf8(&release_bytes).unwrap();
+                    let mut deserializer: Deserializer<'_, quick_xml::de::SliceReader<'_>> = Deserializer::from_str(str);
+                    let currency: Currency = Currency::deserialize(&mut deserializer).unwrap();
                     process_currency(&currency);
-                    count += 1;
-                    if count % 10 == 0 {
-                        println!("checked {} records", count);
-                    }
                 }
                 _ => (),
             },
@@ -103,5 +93,4 @@ fn main() {
         buf.clear();
     }
 
-    println!("checked {} records", count);
 }

@@ -1,6 +1,8 @@
 # Converts currency rates from XML to JSON format
 
-This program retrieves currency exchange rate data from the [Central Bank of Russia](https://www.cbr.ru) in [XML format](https://www.cbr.ru/scripts/XML_daily.asp) and outputs it in JSON. If you specify the `--debug` parameter, additional information will be provided in a human-readable format.
+This program retrieves currency exchange rate data from the [Central Bank of Russia](https://www.cbr.ru/development/SXML/) in XML format and outputs it in JSON. If you specify the `--debug` parameter the information will be displayed in a human-readable format.
+
+[Source](https://www.cbr.ru/scripts/XML_daily.asp)
 
 ## How to build
 

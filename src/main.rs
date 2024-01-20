@@ -9,7 +9,7 @@ use std::fmt;
 
 const CBRF_DAILY_XML_ENDPOINT: &str = "https://www.cbr.ru/scripts/XML_daily.asp";
 
-/// Convert currency rates from XML to JSON format
+/// Converts currency rates from XML to JSON format
 #[derive(Parser, Debug)]
 #[command(version)]
 struct Cli {
@@ -50,7 +50,7 @@ struct Valute {
 impl fmt::Display for ValCurs {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{:=^79}", " REPORT ")?;
-        write!(f, "Date: {}\nName: {}\n", self.date, self.name)?;
+        writeln!(f, "Date: {}\nName: {}", self.date, self.name)?;
         writeln!(f, "{:-^79}", "")?;
         writeln!(
             f,

@@ -112,12 +112,12 @@ fn decode_windows1251(bytes: &Bytes) -> String {
 fn main() {
     let cli = Cli::parse();
 
-    let content = get_data(CBRF_DAILY_XML_ENDPOINT).expect("Cant read from URL");
+    let content = get_data(CBRF_DAILY_XML_ENDPOINT).expect("Failed to download from URL");
     let decoded_content: String = decode_windows1251(&content);
     let mut valcurs: ValCurs = from_str(&decoded_content).expect("Failed to parse XML");
     valcurs.valutes.sort();
 
-    let res_json: String = serde_json::to_string(&valcurs).expect("Cant serialize to JSON");
+    let res_json: String = serde_json::to_string(&valcurs).expect("Can't serialize to JSON");
 
     if cli.debug {
         println!("{}", valcurs);

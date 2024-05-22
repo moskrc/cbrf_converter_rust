@@ -1,4 +1,4 @@
-# Converts currency rates from XML to JSON format
+# Converts currency rates from XML to JSON format - test
 
 This program retrieves currency exchange rate data from the [Central Bank of Russia](https://www.cbr.ru/development/SXML/) in XML format and outputs it in JSON. If you specify the `--debug` parameter the information will be displayed in a human-readable format.
 
